@@ -3,11 +3,12 @@
        xmlns:context="http://www.springframework.org/schema/context"
        xmlns:p="http://www.springframework.org/schema/p"
        xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xmlns:jdbc="http://www.springframework.org/schema/jdbc"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
         http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
         http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd">
 
-    <context:component-scan base-package="com.blackjack"/>
+    <context:component-scan base-package="com.blackjack" />
     <mvc:annotation-driven />
     <mvc:resources mapping="/resources/**" location="/resources" />
 
@@ -16,12 +17,24 @@
         <property name="suffix" value=".jsp"/>
     </bean>
 
+    <jdbc:embedded-database id="embededDataSource" type="DERBY">
+        <jdbc:script location="/resources/db/schema.sql" />
+        <jdbc:script location="/resources/db/test-data.sql" />
+    </jdbc:embedded-database>
+
+    <bean id="jdbcTemplate"
+          class="org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate" >
+        <constructor-arg ref="dataSource" />
+    </bean>
+
     <bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource" destroy-method="close"
-          p:driverClassName="org.apache.derby.jdbc.EmbeddedDriver"
-          p:url="jdbc:derby://localhost:1527/myDB"
-          p:username="sa"
+          p:driverClass="org.apache.derby.jdbc.EmbeddedDriver"
+          p:jdbcUrl="jdbc:derby:memory:embededDataSource"
+          p:user="dao"
           p:password=""
-          p:initialSize="5"
-          p:maxActive="10" />
+          p:minPoolSize="5"
+          p:initialPoolSize="10"
+          p:maxPoolSize="50"
+          p:maxStatements="180" />
 
 </beans>
