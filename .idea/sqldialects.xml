@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="SqlDialectMappings">
+    <file url="file://$PROJECT_DIR$/src/main/webapp/resources/schema.sql" dialect="Derby" />
+    <file url="file://$PROJECT_DIR$/src/main/webapp/resources/test-data.sql" dialect="Derby" />
+    <file url="file://$PROJECT_DIR$/target/BlackJack/schema.sql" dialect="Derby" />
+    <file url="file://$PROJECT_DIR$/target/BlackJack/test-data.sql" dialect="Derby" />
+  </component>
+</project>

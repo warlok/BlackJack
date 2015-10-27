@@ -40,13 +40,16 @@ public class GameController {
     }
 
     @RequestMapping(value = "/hit", method = RequestMethod.GET, produces="application/json")
-    public @ResponseBody Card hit() {
-        return null;
+    public @ResponseBody Card hit(@RequestParam("playerId") Integer playerId) {
+        Player player = getPlayer(playerId);
+        Card card = dealer.getCard();
+        player.takeCard(dealer.getCard());
+        return card;
     }
 
     @RequestMapping(value = "/stand", method = RequestMethod.GET, produces="application/json")
-    public @ResponseBody Card stand() {
-        return null;
+    public @ResponseBody String stand() {
+        return "You loose";
     }
 
     @RequestMapping(value = "/rebet", method = RequestMethod.GET, produces="application/json")
@@ -60,8 +63,11 @@ public class GameController {
     }
 
     @RequestMapping(value = "/cashin", method = RequestMethod.GET, produces="application/json")
-    public @ResponseBody String cashin() {
-        return "On your account " + "" + " money";
+    public @ResponseBody String cashin(@RequestParam("playerId") Integer playerId,
+                                       @RequestParam("amount") double amount ) {
+        Player player = getPlayer(playerId);
+        player.cashIn(amount);
+        return "On your account " + player.getMoney() + "$ now";
     }
 
     private Player getPlayer(Integer playerId) {
@@ -71,7 +77,7 @@ public class GameController {
         } else {
             player = new Player();
             player.setPlayerId(playerId);
-//            player.setMoney();
+            player.setMoney(5000.0);
             players.put(playerId,player);
         }
         return player;

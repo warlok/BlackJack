@@ -1,0 +1,11 @@
+<component name="ArtifactManager">
+  <artifact type="war" build-on-make="true" name="BlackJack">
+    <output-path>$PROJECT_DIR$/target</output-path>
+    <root id="archive" name="BlackJack.war">
+      <element id="artifact" artifact-name="BlackJack exploded" />
+      <element id="directory" name="META-INF">
+        <element id="file-copy" path="$PROJECT_DIR$/src/main/webapp/META-INF/MANIFEST.MF" />
+      </element>
+    </root>
+  </artifact>
+</component>

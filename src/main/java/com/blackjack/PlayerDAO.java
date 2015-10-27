@@ -8,5 +8,6 @@ import com.blackjack.objects.Player;
 public interface PlayerDAO {
 
     public void updateBalance(int playerId);
+    public double getBalance(int playerId);
 
 }

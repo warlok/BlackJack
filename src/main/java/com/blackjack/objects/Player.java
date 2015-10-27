@@ -9,7 +9,7 @@ import java.util.List;
 public class Player {
 
     private int playerId;
-    private int money;
+    private double money;
     private List<Card> cards;
 
     public Player() {
@@ -24,12 +24,16 @@ public class Player {
         this.playerId = playerId;
     }
 
-    public int getMoney() {
+    public double getMoney() {
         return money;
     }
 
-    public void setMoney(int money) {
+    public void setMoney(double money) {
         this.money = money;
+    }
+
+    public void cashIn(double amount) {
+        this.money += amount;
     }
 
     public void takeCard(Card card) {
