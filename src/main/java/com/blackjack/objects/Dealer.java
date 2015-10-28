@@ -11,13 +11,16 @@ import java.util.Stack;
  * Created by dean on 10/26/15.
  */
 @Component
-public class Dealer {
+public class Dealer implements IPlayer {
 
     private final String[] NOMINALS = new String[]{
             "2","3","4","5","6","7","8","9","10","J","Q","K","A"};
     private List<Card> unsortedDeck;
     private Stack<Card> deck;
-    private List<Card> cards = new ArrayList<>(2);
+    private List<Card> cards = new ArrayList<>();
+    private int score;
+    private int hiddenScore;
+    private int aceAmount;
 
     public Dealer() {
         this.unsortedDeck = unsortedDeck();
@@ -31,10 +34,21 @@ public class Dealer {
                 Card card = new Card();
                 card.setSuit(suit);
                 card.setValue(nominal);
+                setCardPoints(card);
                 deck.add(card);
             }
         }
         return deck;
+    }
+
+    private void setCardPoints(Card card) {
+        if (card.getValue().equals("A")) {
+            card.setPoints(11);
+        } else if (card.getValue().matches("[JQK]")) {
+            card.setPoints(10);
+        } else {
+            card.setPoints(Integer.parseInt(card.getValue()));
+        }
     }
 
     public Stack<Card> shuffleDeck() {
@@ -62,5 +76,51 @@ public class Dealer {
 
     public List<Card> getCards() {
         return cards;
+    }
+
+    public void updateScore(int points) {
+        this.score += points;
+    }
+
+    public int getScore() {
+        return score;
+    }
+
+    public void updateHiddenScore(int points) {
+        this.hiddenScore += points;
+    }
+
+    public int getHiddenScore() {
+        return hiddenScore;
+    }
+
+    public void addAce() {
+        this.aceAmount++;
+    }
+
+    public void checkAce() {
+        this.aceAmount--;
+    }
+
+    public boolean hasAce() {
+        if (aceAmount > 0) {
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public void setCards(List<Card> cards) {
+        this.cards = cards;
+    }
+
+    @Override
+    public void setAceAmount(int aceAmount) {
+        this.aceAmount = aceAmount;
+    }
+
+    @Override
+    public void setScore(int score) {
+        this.score = score;
     }
 }

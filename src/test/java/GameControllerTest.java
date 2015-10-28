@@ -12,9 +12,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.standaloneSetup;
 
 /**
@@ -42,6 +40,13 @@ public class GameControllerTest {
         mock.perform(get("/deal").param("playerId","1")).andExpect(content().contentType(MediaType.APPLICATION_JSON));
 //                .andExpect(MockMvcResultMatchers.status().isOk());
 //                .andExpect(jsonPath("$[0][0].suit").value(dealer.getCards().get(0).getSuit()));
+    }
+
+    @Test
+    public void testCashIn() throws Exception {
+        mock.perform(get("/cashin").param("playerId","1").param("amount","5")).andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(content().string("On your account 5005.0$ now"));
     }
 
 }

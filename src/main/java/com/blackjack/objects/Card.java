@@ -10,7 +10,16 @@ public class Card {
     private Suit suit;
     private String value;
     private Image image = null;
-    private boolean isHiden = false;
+    private boolean isHidden = false;
+    private int points;
+
+    public int getPoints() {
+        return points;
+    }
+
+    public void setPoints(int points) {
+        this.points = points;
+    }
 
     public Suit getSuit() {
         return suit;
@@ -37,11 +46,11 @@ public class Card {
     }
 
     public boolean isHiden() {
-        return isHiden;
+        return isHidden;
     }
 
     public void setHiden(boolean isHiden) {
-        this.isHiden = isHiden;
+        this.isHidden = isHiden;
     }
 
 }
