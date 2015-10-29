@@ -25,14 +25,12 @@
 
     <bean id="jdbcTemplate"
           class="org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate" >
-        <constructor-arg ref="dataSource" />
+        <constructor-arg ref="embededDataSource" />
     </bean>
 
-    <bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource" destroy-method="close"
+    <bean id="dataSource" depends-on="embededDataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource" destroy-method="close"
           p:driverClass="org.apache.derby.jdbc.EmbeddedDriver"
           p:jdbcUrl="jdbc:derby:memory:embededDataSource"
-          p:user="dao"
-          p:password=""
           p:minPoolSize="5"
           p:initialPoolSize="10"
           p:maxPoolSize="50"

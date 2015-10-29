@@ -26,9 +26,6 @@ public class GameControllerTest {
     GameController controller;
     MockMvc mock;
 
-//    @Autowired
-//    Dealer dealer;
-
     @Before
     public void init() {
         controller = new GameController();
@@ -44,7 +41,8 @@ public class GameControllerTest {
 
     @Test
     public void testCashIn() throws Exception {
-        mock.perform(get("/cashin").param("playerId","1").param("amount","5")).andExpect(status().isOk())
+        mock.perform(get("/cashin").param("playerId","1").param("amount","5"))
+                .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(content().string("On your account 5005.0$ now"));
     }
