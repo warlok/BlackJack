@@ -6,7 +6,6 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
-import javax.sql.DataSource;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
@@ -15,7 +14,6 @@ import java.util.Map;
 @Component
 public class PlayerDaoDerbyImpl implements PlayerDao {
 
-//    private DataSource dataSource;
     private NamedParameterJdbcTemplate jdbcTemplate;
 
     private static final String SELECT_PLAYER = "select * from PLAYERS where ID_PLAYER=:playerId";
@@ -50,15 +48,6 @@ public class PlayerDaoDerbyImpl implements PlayerDao {
             return players;
         }
     }
-
-//    @Autowired
-//    public void setDataSource(DataSource dataSource) {
-//        this.dataSource = dataSource;
-//    }
-
-//    public NamedParameterJdbcTemplate getJdbcTemplate() {
-//        return jdbcTemplate;
-//    }
 
     @Autowired
     public void setJdbcTemplate(NamedParameterJdbcTemplate jdbcTemplate) {

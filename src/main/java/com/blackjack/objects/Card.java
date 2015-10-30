@@ -2,9 +2,6 @@ package com.blackjack.objects;
 
 import java.awt.*;
 
-/**
- * Created by dean on 10/26/15.
- */
 public class Card {
 
     private Suit suit;

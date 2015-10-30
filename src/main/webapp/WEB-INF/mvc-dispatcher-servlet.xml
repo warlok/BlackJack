@@ -28,12 +28,4 @@
         <constructor-arg ref="embededDataSource" />
     </bean>
 
-    <bean id="dataSource" depends-on="embededDataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource" destroy-method="close"
-          p:driverClass="org.apache.derby.jdbc.EmbeddedDriver"
-          p:jdbcUrl="jdbc:derby:memory:embededDataSource"
-          p:minPoolSize="5"
-          p:initialPoolSize="10"
-          p:maxPoolSize="50"
-          p:maxStatements="180" />
-
 </beans>

@@ -3,9 +3,6 @@ package com.blackjack.objects;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Created by dean on 10/26/15.
- */
 public class Player implements IPlayer {
 
     private int playerId;
@@ -13,6 +10,8 @@ public class Player implements IPlayer {
     private List<Card> cards;
     private int score;
     private int aceAmount;
+    private double bet;
+    private double lastBet;
 
     public Player() {
         this.cards = new ArrayList<>();
@@ -34,14 +33,36 @@ public class Player implements IPlayer {
         this.money = money;
     }
 
+    public void updateMoney(double money) {
+        this.money += money;
+    }
+
     public void cashIn(double amount) {
         this.money += amount;
     }
 
+    public double getBet() {
+        return bet;
+    }
+
+    public double getLastBet() {
+        return lastBet;
+    }
+
+    public void setLastBet(double lastBet) {
+        this.lastBet = lastBet;
+    }
+
+    public void setBet(double bet) {
+        this.bet = bet;
+    }
+
+    @Override
     public void takeCard(Card card) {
         cards.add(card);
     }
 
+    @Override
     public List<Card> getCards() {
         return cards;
     }
@@ -61,22 +82,27 @@ public class Player implements IPlayer {
         this.score = score;
     }
 
+    @Override
     public int getScore() {
         return score;
     }
 
+    @Override
     public void updateScore(int points) {
         this.score += points;
     }
 
+    @Override
     public void addAce() {
         this.aceAmount++;
     }
 
+    @Override
     public void checkAce() {
         this.aceAmount--;
     }
 
+    @Override
     public boolean hasAce() {
         if (aceAmount > 0) {
             return true;

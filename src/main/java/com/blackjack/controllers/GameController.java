@@ -1,5 +1,6 @@
 package com.blackjack.controllers;
 
+import com.blackjack.PlayerDao;
 import com.blackjack.objects.Card;
 import com.blackjack.objects.Dealer;
 import com.blackjack.objects.IPlayer;
@@ -13,16 +14,15 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.util.*;
 
-/**
- * Created by dean on 10/26/15.
- */
 @Controller
 @RequestMapping("/")
 public class GameController {
 
     @Autowired
     Dealer dealer;
-    Map<Integer,Player> players = new HashMap<>();
+    @Autowired
+    PlayerDao playerDao;
+    Map<Integer,Player> players = playerDao.getPlayers();
     int counter = 0;
 
     @RequestMapping(value = "/deal", method = RequestMethod.GET, produces="application/json")
@@ -43,16 +43,75 @@ public class GameController {
     ) {
         Player player = getPlayer(playerId);
         if (counter == 0 && checkBlackJack(player)) {
-            IPlayer viner = checkResult(player);
-            counter ++;
+            IPlayer winner = checkResult(player);
             newSet(player);
-            return viner.getClass().getSimpleName() + " has Black Jack and vin";
+            return winner(winner) + " has Black Jack and win";
         } else if (checkPlayerPoints(player)) {
             checkDealerPoints();
-            IPlayer viner = checkResult(player);
-            return viner.getClass().getSimpleName() + " vin";
+            IPlayer winner = checkResult(player);
+            newSet(player);
+            return winner(winner) + " win with score" + winner.getScore();
         }
         return "Dealer: " + dealer.getScore() + " Player:" + player.getScore();
+    }
+
+    @RequestMapping(value = "/hit", method = RequestMethod.GET, produces="application/json")
+    public @ResponseBody List<Card> hit(@RequestParam("playerId") Integer playerId) {
+        Player player = getPlayer(playerId);
+        newCard(player);
+        counter ++;
+        checkPlayerPoints(player);
+        return player.getCards();
+    }
+
+    @RequestMapping(value = "/stand", method = RequestMethod.GET, produces="application/json")
+    public @ResponseBody String stand(@RequestParam("playerId") Integer playerId) {
+        Player player = getPlayer(playerId);
+        checkDealerPoints();
+        IPlayer winner = checkResult(player);
+        return winner(winner) + " win with score" + winner.getScore();
+    }
+
+    @RequestMapping(value = "/rebet", method = RequestMethod.GET, produces="application/json")
+    public @ResponseBody Player rebet(@RequestParam("playerId") Integer playerId) {
+        Player player = getPlayer(playerId);
+        if (player.getBet() == 0) {
+            player.setBet(player.getLastBet());
+        }
+        return player;
+    }
+
+    @RequestMapping(value = "/newbet", method = RequestMethod.GET, produces="application/json")
+    public @ResponseBody Player newbet(@RequestParam("bet") double bet,
+                                           @RequestParam("playerId") Integer playerId) {
+        Player player = getPlayer(playerId);
+        if (player.getBet() == 0) {
+            player.setBet(bet);
+        }
+        return player;
+    }
+
+    @RequestMapping(value = "/cashin", method = RequestMethod.GET, produces="application/json")
+    public @ResponseBody Player cashin(@RequestParam("playerId") Integer playerId,
+                                       @RequestParam("amount") double amount ) {
+        Player player = getPlayer(playerId);
+        player.cashIn(amount);
+        playerDao.updateBalance(player);
+        return player;
+    }
+
+    private Player getPlayer(Integer playerId) {
+        Player player = null;
+        if (players.containsKey(playerId)) {
+            player = players.get(playerId);
+        } else {
+            player = new Player();
+            player.setPlayerId(playerId);
+            player.setMoney(5000.0);
+            players.put(playerId,player);
+            playerDao.addPlayer(player);
+        }
+        return player;
     }
 
     private void firstHand(Player player) {
@@ -60,17 +119,27 @@ public class GameController {
         newCard(player);
         newHiddenCard(dealer);
         newCard(player);
+        checkBlackJack(player);
+        checkPlayerPoints(player);
     }
 
     private IPlayer checkResult(Player player) {
         IPlayer result = null;
         if (player.getScore() > 21) {
+            player.updateMoney(-player.getBet());
+            playerDao.updateBalance(player);
             result = dealer;
         } else if (dealer.getScore() > 21) {
+            player.updateMoney(player.getBet());
+            playerDao.updateBalance(player);
             result = player;
         } else if (player.getScore() > dealer.getScore()) {
+            player.updateMoney(player.getBet());
+            playerDao.updateBalance(player);
             result = player;
         } else if (player.getScore() < dealer.getScore()) {
+            player.updateMoney(-player.getBet());
+            playerDao.updateBalance(player);
             result = dealer;
         } else if (player.getScore() == dealer.getScore()) {
             result = null;
@@ -85,12 +154,18 @@ public class GameController {
         player.setAceAmount(0);
         player.setCards(new ArrayList<Card>());
         player.setScore(0);
+        player.setLastBet(player.getBet());
+        player.setBet(0);
     }
 
     private boolean checkBlackJack(Player player) {
         if (dealer.getScore() == 21 && player.getScore() != 21) {
+            player.updateMoney(-player.getBet());
+            playerDao.updateBalance(player);
             return true;
         } else if (player.getScore() == 21 && dealer.getScore() != 21) {
+            player.updateMoney(1.5*player.getBet());
+            playerDao.updateBalance(player);
             return true;
         }
         return false;
@@ -132,6 +207,9 @@ public class GameController {
 
     private void newCard(IPlayer player) {
         Card card = dealer.getCard();
+        if (card.getValue().equals("A")) {
+            player.addAce();
+        }
         player.updateScore(card.getPoints());
         player.takeCard(card);
     }
@@ -139,53 +217,19 @@ public class GameController {
     private void newHiddenCard(Dealer player) {
         Card card = dealer.getCard();
         card.setHiden(true);
+        if (card.getValue().equals("A")) {
+            player.addAce();
+        }
         player.updateHiddenScore(player.getScore());
         player.updateHiddenScore(card.getPoints());
         player.takeCard(card);
     }
 
-    @RequestMapping(value = "/hit", method = RequestMethod.GET, produces="application/json")
-    public @ResponseBody Card hit(@RequestParam("playerId") Integer playerId) {
-        Player player = getPlayer(playerId);
-        Card card = dealer.getCard();
-        player.takeCard(dealer.getCard());
-        return card;
-    }
-
-    @RequestMapping(value = "/stand", method = RequestMethod.GET, produces="application/json")
-    public @ResponseBody String stand() {
-        return "You loose";
-    }
-
-    @RequestMapping(value = "/rebet", method = RequestMethod.GET, produces="application/json")
-    public @ResponseBody List<Card> rebet() {
-        return null;
-    }
-
-    @RequestMapping(value = "/newbet", method = RequestMethod.GET, produces="application/json")
-    public @ResponseBody List<Card> newbet() {
-        return null;
-    }
-
-    @RequestMapping(value = "/cashin", method = RequestMethod.GET, produces="application/json")
-    public @ResponseBody String cashin(@RequestParam("playerId") Integer playerId,
-                                       @RequestParam("amount") double amount ) {
-        Player player = getPlayer(playerId);
-        player.cashIn(amount);
-        return "On your account " + player.getMoney() + "$ now";
-    }
-
-    private Player getPlayer(Integer playerId) {
-        Player player = null;
-        if (players.containsKey(playerId)) {
-            player = players.get(playerId);
+    private String winner(IPlayer winner) {
+        if (winner instanceof Dealer) {
+            return "Dealer";
         } else {
-            player = new Player();
-            player.setPlayerId(playerId);
-            player.setMoney(5000.0);
-            players.put(playerId,player);
+            return "Player";
         }
-        return player;
     }
-
 }

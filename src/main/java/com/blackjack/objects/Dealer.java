@@ -7,9 +7,6 @@ import java.util.List;
 import java.util.Random;
 import java.util.Stack;
 
-/**
- * Created by dean on 10/26/15.
- */
 @Component
 public class Dealer implements IPlayer {
 
@@ -67,21 +64,28 @@ public class Dealer implements IPlayer {
 
     public Card getCard() {
         Card card = deck.pop();
+        if (deck.size() < 10) {
+            deck = shuffleDeck();
+        }
         return card;
     }
 
+    @Override
     public void takeCard(Card card) {
             cards.add(card);
     }
 
+    @Override
     public List<Card> getCards() {
         return cards;
     }
 
+    @Override
     public void updateScore(int points) {
         this.score += points;
     }
 
+    @Override
     public int getScore() {
         return score;
     }
@@ -94,14 +98,17 @@ public class Dealer implements IPlayer {
         return hiddenScore;
     }
 
+    @Override
     public void addAce() {
         this.aceAmount++;
     }
 
+    @Override
     public void checkAce() {
         this.aceAmount--;
     }
 
+    @Override
     public boolean hasAce() {
         if (aceAmount > 0) {
             return true;

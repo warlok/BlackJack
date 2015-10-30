@@ -4,9 +4,6 @@ import com.blackjack.objects.Player;
 
 import java.util.Map;
 
-/**
- * Created by dean on 10/26/15.
- */
 public interface PlayerDao {
 
     public void updateBalance(Player player);
