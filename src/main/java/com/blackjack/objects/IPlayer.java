@@ -14,4 +14,5 @@ public interface IPlayer {
     void addAce();
     void checkAce();
     boolean hasAce();
+    public String getName();
 }

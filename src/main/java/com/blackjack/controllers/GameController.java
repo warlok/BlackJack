@@ -1,10 +1,7 @@
 package com.blackjack.controllers;
 
 import com.blackjack.PlayerDao;
-import com.blackjack.objects.Card;
-import com.blackjack.objects.Dealer;
-import com.blackjack.objects.IPlayer;
-import com.blackjack.objects.Player;
+import com.blackjack.objects.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -12,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import javax.annotation.PostConstruct;
 import java.util.*;
 
 @Controller
@@ -22,54 +20,75 @@ public class GameController {
     Dealer dealer;
     @Autowired
     PlayerDao playerDao;
-    Map<Integer,Player> players = playerDao.getPlayers();
+    @Autowired
+    Result result;
+    Map<Integer,Player> players;
     int counter = 0;
 
+    @PostConstruct
+    public void init(){
+        players = playerDao.getPlayers();
+    }
+
     @RequestMapping(value = "/deal", method = RequestMethod.GET, produces="application/json")
-    public @ResponseBody List<List<Card>> deal(@RequestParam("playerId") Integer playerId
-    ) {
+    public @ResponseBody Result deal(@RequestParam("playerId") Integer playerId,
+                                     @RequestParam("bet") double bet) {
+        Player player = getPlayer(playerId);
+        player.setBet(bet);
+        if (dealer.getScore() == 0) {
+            firstHand(player);
+        }
+        return getResult(player);
+    }
+
+    @RequestMapping(value = "/deal", method = RequestMethod.GET, produces="application/json")
+    public @ResponseBody Result deal(@RequestParam("playerId") Integer playerId) {
         Player player = getPlayer(playerId);
         if (dealer.getScore() == 0) {
             firstHand(player);
         }
-        ArrayList<List<Card>> firstSet = new ArrayList<>();
-        firstSet.add(dealer.getCards());
-        firstSet.add(player.getCards());
-        return firstSet;
+        return getResult(player);
     }
 
     @RequestMapping(value = "/score", method = RequestMethod.GET, produces="application/json")
-    public @ResponseBody String getScore(@RequestParam("playerId") Integer playerId
+    public @ResponseBody Result getScore(@RequestParam("playerId") Integer playerId
     ) {
         Player player = getPlayer(playerId);
+        return getResult(player);
+    }
+
+    private Result getResult(Player player) {
+        result.setPlayer(player);
+        if (!result.isGameFinished()) {
         if (counter == 0 && checkBlackJack(player)) {
             IPlayer winner = checkResult(player);
-            newSet(player);
-            return winner(winner) + " has Black Jack and win";
-        } else if (checkPlayerPoints(player)) {
+            result.setWinner(winner);
+            result.setIsBlackJack(true);
+            result.setGameFinished(true);
+        } else if (checkPlayerPoints(player) || player.isStand()) {
             checkDealerPoints();
             IPlayer winner = checkResult(player);
-            newSet(player);
-            return winner(winner) + " win with score" + winner.getScore();
+            result.setWinner(winner);
+            result.setGameFinished(true);
         }
-        return "Dealer: " + dealer.getScore() + " Player:" + player.getScore();
+        }
+        return result;
     }
 
     @RequestMapping(value = "/hit", method = RequestMethod.GET, produces="application/json")
-    public @ResponseBody List<Card> hit(@RequestParam("playerId") Integer playerId) {
+    public @ResponseBody Result hit(@RequestParam("playerId") Integer playerId) {
         Player player = getPlayer(playerId);
         newCard(player);
         counter ++;
         checkPlayerPoints(player);
-        return player.getCards();
+        return getResult(player);
     }
 
     @RequestMapping(value = "/stand", method = RequestMethod.GET, produces="application/json")
-    public @ResponseBody String stand(@RequestParam("playerId") Integer playerId) {
+    public @ResponseBody Result stand(@RequestParam("playerId") Integer playerId) {
         Player player = getPlayer(playerId);
-        checkDealerPoints();
-        IPlayer winner = checkResult(player);
-        return winner(winner) + " win with score" + winner.getScore();
+        player.setStand(true);
+        return getResult(player);
     }
 
     @RequestMapping(value = "/rebet", method = RequestMethod.GET, produces="application/json")
@@ -100,6 +119,12 @@ public class GameController {
         return player;
     }
 
+    @RequestMapping(value = "/newset", method = RequestMethod.GET, produces="application/json")
+    public @ResponseBody void newSet(@RequestParam("playerId") Integer playerId) {
+        Player player = getPlayer(playerId);
+        newSet(player);
+    }
+
     private Player getPlayer(Integer playerId) {
         Player player = null;
         if (players.containsKey(playerId)) {
@@ -119,8 +144,8 @@ public class GameController {
         newCard(player);
         newHiddenCard(dealer);
         newCard(player);
-        checkBlackJack(player);
-        checkPlayerPoints(player);
+//        checkBlackJack(player);
+//        checkPlayerPoints(player);
     }
 
     private IPlayer checkResult(Player player) {
@@ -151,11 +176,16 @@ public class GameController {
         dealer.setAceAmount(0);
         dealer.setCards(new ArrayList<Card>());
         dealer.setScore(0);
+        dealer.setHiddenScore(0);
+        result = new Result();
+        result.setDealer(dealer);
         player.setAceAmount(0);
         player.setCards(new ArrayList<Card>());
         player.setScore(0);
         player.setLastBet(player.getBet());
         player.setBet(0);
+        player.setStand(false);
+        counter = 0;
     }
 
     private boolean checkBlackJack(Player player) {
@@ -164,7 +194,7 @@ public class GameController {
             playerDao.updateBalance(player);
             return true;
         } else if (player.getScore() == 21 && dealer.getScore() != 21) {
-            player.updateMoney(1.5*player.getBet());
+            player.updateMoney(1.5 * player.getBet());
             playerDao.updateBalance(player);
             return true;
         }
@@ -174,8 +204,10 @@ public class GameController {
     private boolean checkDealerPoints() {
         boolean result = false;
         Card card = dealer.getCards().get(1);
-        card.setHiden(false);
-        dealer.updateScore(card.getPoints());
+        if (card.isHiden()) {
+            card.setHiden(false);
+            dealer.updateScore(card.getPoints());
+        }
         if (dealer.getScore() == 21) {
             result = true;
         } else if (dealer.getScore() > 21 && dealer.hasAce()) {
@@ -206,7 +238,7 @@ public class GameController {
     }
 
     private void newCard(IPlayer player) {
-        Card card = dealer.getCard();
+        Card card = dealer.card();
         if (card.getValue().equals("A")) {
             player.addAce();
         }
@@ -215,7 +247,7 @@ public class GameController {
     }
 
     private void newHiddenCard(Dealer player) {
-        Card card = dealer.getCard();
+        Card card = dealer.card();
         card.setHiden(true);
         if (card.getValue().equals("A")) {
             player.addAce();
@@ -223,13 +255,5 @@ public class GameController {
         player.updateHiddenScore(player.getScore());
         player.updateHiddenScore(card.getPoints());
         player.takeCard(card);
-    }
-
-    private String winner(IPlayer winner) {
-        if (winner instanceof Dealer) {
-            return "Dealer";
-        } else {
-            return "Player";
-        }
     }
 }

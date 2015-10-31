@@ -15,6 +15,7 @@ public class Dealer implements IPlayer {
     private List<Card> unsortedDeck;
     private Stack<Card> deck;
     private List<Card> cards = new ArrayList<>();
+    private String name = "Dealer";
     private int score;
     private int hiddenScore;
     private int aceAmount;
@@ -62,7 +63,7 @@ public class Dealer implements IPlayer {
         return deck;
     }
 
-    public Card getCard() {
+    public Card card() {
         Card card = deck.pop();
         if (deck.size() < 10) {
             deck = shuffleDeck();
@@ -129,5 +130,17 @@ public class Dealer implements IPlayer {
     @Override
     public void setScore(int score) {
         this.score = score;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setHiddenScore(int hiddenScore) {
+        this.hiddenScore = hiddenScore;
     }
 }

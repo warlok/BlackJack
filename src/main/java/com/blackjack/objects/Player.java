@@ -1,5 +1,8 @@
 package com.blackjack.objects;
 
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,6 +15,8 @@ public class Player implements IPlayer {
     private int aceAmount;
     private double bet;
     private double lastBet;
+    private boolean stand;
+    private String name = "Player";
 
     public Player() {
         this.cards = new ArrayList<>();
@@ -110,4 +115,20 @@ public class Player implements IPlayer {
         return false;
     }
 
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public boolean isStand() {
+        return stand;
+    }
+
+    public void setStand(boolean stand) {
+        this.stand = stand;
+    }
 }
