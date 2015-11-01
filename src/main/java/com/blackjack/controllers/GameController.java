@@ -41,38 +41,11 @@ public class GameController {
         return getResult(player);
     }
 
-    @RequestMapping(value = "/deal", method = RequestMethod.GET, produces="application/json")
-    public @ResponseBody Result deal(@RequestParam("playerId") Integer playerId) {
-        Player player = getPlayer(playerId);
-        if (dealer.getScore() == 0) {
-            firstHand(player);
-        }
-        return getResult(player);
-    }
-
     @RequestMapping(value = "/score", method = RequestMethod.GET, produces="application/json")
     public @ResponseBody Result getScore(@RequestParam("playerId") Integer playerId
     ) {
         Player player = getPlayer(playerId);
         return getResult(player);
-    }
-
-    private Result getResult(Player player) {
-        result.setPlayer(player);
-        if (!result.isGameFinished()) {
-        if (counter == 0 && checkBlackJack(player)) {
-            IPlayer winner = checkResult(player);
-            result.setWinner(winner);
-            result.setIsBlackJack(true);
-            result.setGameFinished(true);
-        } else if (checkPlayerPoints(player) || player.isStand()) {
-            checkDealerPoints();
-            IPlayer winner = checkResult(player);
-            result.setWinner(winner);
-            result.setGameFinished(true);
-        }
-        }
-        return result;
     }
 
     @RequestMapping(value = "/hit", method = RequestMethod.GET, produces="application/json")
@@ -125,7 +98,25 @@ public class GameController {
         newSet(player);
     }
 
-    private Player getPlayer(Integer playerId) {
+    private Result getResult(Player player) {
+        result.setPlayer(player);
+        if (!result.isGameFinished()) {
+            if (counter == 0 && checkBlackJack(player)) {
+                IPlayer winner = checkResult(player);
+                result.setWinner(winner);
+                result.setIsBlackJack(true);
+                result.setGameFinished(true);
+            } else if (checkPlayerPoints(player) || player.isStand()) {
+                checkDealerPoints();
+                IPlayer winner = checkResult(player);
+                result.setWinner(winner);
+                result.setGameFinished(true);
+            }
+        }
+        return result;
+    }
+
+    public Player getPlayer(Integer playerId) {
         Player player = null;
         if (players.containsKey(playerId)) {
             player = players.get(playerId);
@@ -239,21 +230,13 @@ public class GameController {
 
     private void newCard(IPlayer player) {
         Card card = dealer.card();
-        if (card.getValue().equals("A")) {
-            player.addAce();
-        }
-        player.updateScore(card.getPoints());
         player.takeCard(card);
     }
 
     private void newHiddenCard(Dealer player) {
         Card card = dealer.card();
-        card.setHiden(true);
-        if (card.getValue().equals("A")) {
-            player.addAce();
-        }
         player.updateHiddenScore(player.getScore());
-        player.updateHiddenScore(card.getPoints());
-        player.takeCard(card);
+        player.takeHiddenCard(card);
     }
+
 }

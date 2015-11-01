@@ -12,7 +12,7 @@ public class Player implements IPlayer {
     private double money;
     private List<Card> cards;
     private int score;
-    private int aceAmount;
+    private transient int aceAmount;
     private double bet;
     private double lastBet;
     private boolean stand;
@@ -64,7 +64,11 @@ public class Player implements IPlayer {
 
     @Override
     public void takeCard(Card card) {
+        if (card.getValue().equals("A")) {
+            addAce();
+        }
         cards.add(card);
+        updateScore(card.getPoints());
     }
 
     @Override

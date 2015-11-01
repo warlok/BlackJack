@@ -10,15 +10,15 @@ import java.util.Stack;
 @Component
 public class Dealer implements IPlayer {
 
-    private final String[] NOMINALS = new String[]{
+    private transient final String[] NOMINALS = new String[]{
             "2","3","4","5","6","7","8","9","10","J","Q","K","A"};
-    private List<Card> unsortedDeck;
-    private Stack<Card> deck;
+    private transient List<Card> unsortedDeck;
+    private transient Stack<Card> deck;
     private List<Card> cards = new ArrayList<>();
     private String name = "Dealer";
     private int score;
     private int hiddenScore;
-    private int aceAmount;
+    private transient int aceAmount;
 
     public Dealer() {
         this.unsortedDeck = unsortedDeck();
@@ -73,7 +73,20 @@ public class Dealer implements IPlayer {
 
     @Override
     public void takeCard(Card card) {
+        if (card.getValue().equals("A")) {
+            addAce();
+        }
             cards.add(card);
+            updateScore(card.getPoints());
+    }
+
+    public void takeHiddenCard(Card card) {
+        if (card.getValue().equals("A")) {
+            addAce();
+        }
+        cards.add(card);
+        card.setHiden(true);
+        updateHiddenScore(card.getPoints());
     }
 
     @Override
