@@ -4,6 +4,7 @@ import com.blackjack.PlayerDao;
 import com.blackjack.objects.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -30,16 +31,50 @@ public class GameController {
         players = playerDao.getPlayers();
     }
 
-    @RequestMapping(value = "/deal", method = RequestMethod.GET, produces="application/json")
+    @RequestMapping(value = "/deal", method = RequestMethod.GET)
+    public String deal(Model model, @RequestParam("playerId") Integer playerId,
+                                     @RequestParam("bet") double bet) {
+        Player player = getPlayer(playerId);
+        if (result.isGameFinished() || dealer.getScore() == 0) {
+            newSet(player);
+            model.addAttribute("playerId",playerId);
+            model.addAttribute("bet",bet);
+            return "redirect:/firstdeal";
+        } else {
+            return "redirect:/gamestarted";
+        }
+    }
+
+//    @RequestMapping(value = "/deal", method = RequestMethod.GET)
+//    public @ResponseBody String deal(Model model, @RequestParam("playerId") Integer playerId) {
+//        return "redirect:/gamestarted";
+//    }
+
+    @RequestMapping(value = "/firstdeal", method = RequestMethod.GET, produces="application/json")
     public @ResponseBody Result deal(@RequestParam("playerId") Integer playerId,
                                      @RequestParam("bet") double bet) {
         Player player = getPlayer(playerId);
-        player.setBet(bet);
         if (dealer.getScore() == 0) {
+            player.setBet(bet);
             firstHand(player);
         }
         return getResult(player);
     }
+
+    @RequestMapping(value = "/gamestarted", method = RequestMethod.GET, produces="application/json")
+    public @ResponseBody String gameStarted() {
+        return "Game already started, please try another option";
+    }
+//    @RequestMapping(value = "/deal", method = RequestMethod.GET, produces="application/json")
+//    public @ResponseBody Result deal(@RequestParam("playerId") Integer playerId,
+//                                     @RequestParam("bet") double bet) {
+//        Player player = getPlayer(playerId);
+//        player.setBet(bet);
+//        if (dealer.getScore() == 0) {
+//            firstHand(player);
+//        }
+//        return getResult(player);
+//    }
 
     @RequestMapping(value = "/score", method = RequestMethod.GET, produces="application/json")
     public @ResponseBody Result getScore(@RequestParam("playerId") Integer playerId
