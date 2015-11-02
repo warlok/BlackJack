@@ -35,22 +35,39 @@ public class GameControllerTest {
     MockMvc mock;
     @Autowired
     Dealer dealer;
+    Player player;
 
     @Before
     public void init() {
         mock = standaloneSetup(controller).build();
+        player = controller.getPlayer(1);
+        try {
+            mock.perform(get("/newset").param("playerId", "1"));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
-//    @Test
-//    public void testMainPage() throws Exception {
-//        mock.perform(get("/deal").param("playerId","1")).andExpect(content().contentType(MediaType.APPLICATION_JSON));
-//                .andExpect(MockMvcResultMatchers.status().isOk());
-//                .andExpect(jsonPath("$[0][0].suit").value(dealer.getCards().get(0).getSuit()));
-//    }
+    @Test
+    public void testMoney() throws Exception {
+        double money = player.getMoney();
+        player.setMoney(10.0);
+        mock.perform(get("/deal").param("playerId", "1").param("bet", "50"))
+                .andExpect(status().is(302))
+                .andExpect(view().name("redirect:/money"));
+        player.setMoney(money);
+    }
+
+    @Test
+    public void testGameStarted() throws Exception {
+        dealer.setScore(20);
+        mock.perform(get("/deal").param("playerId", "1").param("bet", "50"))
+                .andExpect(status().is(302))
+                .andExpect(view().name("redirect:/gamestarted"));
+    }
 
     @Test
     public void testCashIn() throws Exception {
-        Player player = controller.getPlayer(1);
         mock.perform(get("/cashin").param("playerId", "1").param("amount", "5"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -65,7 +82,6 @@ public class GameControllerTest {
         Card card2 = new Card();
         card2.setPoints(10);
         card2.setValue("10");
-        Player player = controller.getPlayer(1);
         player.takeCard(card1);
         player.takeCard(card2);
         player.setBet(40);
@@ -77,7 +93,7 @@ public class GameControllerTest {
         result.setGameFinished(true);
         result.setWinner(player);
         result.setIsBlackJack(true);
-        mock.perform(get("/deal").param("playerId", "1").param("bet", "40"))
+        mock.perform(get("/firstdeal").param("playerId", "1").param("bet", "40"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(content().string(gson.toJson(result)));
@@ -91,7 +107,6 @@ public class GameControllerTest {
         Card card2 = new Card();
         card2.setPoints(10);
         card2.setValue("10");
-        Player player = controller.getPlayer(1);
         player.takeCard(card2);
         player.takeCard(card2);
         player.setBet(40);
@@ -103,7 +118,7 @@ public class GameControllerTest {
         result.setGameFinished(true);
         result.setWinner(dealer);
         result.setIsBlackJack(true);
-        mock.perform(get("/deal").param("playerId", "1").param("bet", "40"))
+        mock.perform(get("/firstdeal").param("playerId", "1").param("bet", "40"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(content().string(gson.toJson(result)));
@@ -120,7 +135,6 @@ public class GameControllerTest {
         Card card3 = new Card();
         card3.setPoints(11);
         card3.setValue("A");
-        Player player = controller.getPlayer(1);
         player.takeCard(card2);
         player.takeCard(card2);
         player.takeCard(card3);

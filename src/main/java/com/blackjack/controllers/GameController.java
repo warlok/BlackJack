@@ -35,8 +35,9 @@ public class GameController {
     public String deal(Model model, @RequestParam("playerId") Integer playerId,
                                      @RequestParam("bet") double bet) {
         Player player = getPlayer(playerId);
-        if (result.isGameFinished() || dealer.getScore() == 0) {
-            newSet(player);
+        if (player.getMoney() - bet < 0) {
+            return "redirect:/money";
+        } else if (result.isGameFinished() || dealer.getScore() == 0) {
             model.addAttribute("playerId",playerId);
             model.addAttribute("bet",bet);
             return "redirect:/firstdeal";
@@ -45,16 +46,12 @@ public class GameController {
         }
     }
 
-//    @RequestMapping(value = "/deal", method = RequestMethod.GET)
-//    public @ResponseBody String deal(Model model, @RequestParam("playerId") Integer playerId) {
-//        return "redirect:/gamestarted";
-//    }
-
     @RequestMapping(value = "/firstdeal", method = RequestMethod.GET, produces="application/json")
     public @ResponseBody Result deal(@RequestParam("playerId") Integer playerId,
                                      @RequestParam("bet") double bet) {
         Player player = getPlayer(playerId);
         if (dealer.getScore() == 0) {
+            newSet(player);
             player.setBet(bet);
             firstHand(player);
         }
@@ -65,16 +62,11 @@ public class GameController {
     public @ResponseBody String gameStarted() {
         return "Game already started, please try another option";
     }
-//    @RequestMapping(value = "/deal", method = RequestMethod.GET, produces="application/json")
-//    public @ResponseBody Result deal(@RequestParam("playerId") Integer playerId,
-//                                     @RequestParam("bet") double bet) {
-//        Player player = getPlayer(playerId);
-//        player.setBet(bet);
-//        if (dealer.getScore() == 0) {
-//            firstHand(player);
-//        }
-//        return getResult(player);
-//    }
+
+    @RequestMapping(value = "/money", method = RequestMethod.GET, produces="application/json")
+    public @ResponseBody String notEnoughMoney() {
+        return "You don't have enough money for a bet";
+    }
 
     @RequestMapping(value = "/score", method = RequestMethod.GET, produces="application/json")
     public @ResponseBody Result getScore(@RequestParam("playerId") Integer playerId
@@ -100,22 +92,28 @@ public class GameController {
     }
 
     @RequestMapping(value = "/rebet", method = RequestMethod.GET, produces="application/json")
-    public @ResponseBody Player rebet(@RequestParam("playerId") Integer playerId) {
+    public @ResponseBody String rebet(Model model, @RequestParam("playerId") Integer playerId) {
         Player player = getPlayer(playerId);
-        if (player.getBet() == 0) {
-            player.setBet(player.getLastBet());
+        if (player.getMoney() - player.getLastBet() < 0) {
+            return "redirect:/money";
+        } else {
+            model.addAttribute("playerId", playerId);
+            model.addAttribute("bet", player.getLastBet());
+            return "redirect:/firstdeal";
         }
-        return player;
     }
 
     @RequestMapping(value = "/newbet", method = RequestMethod.GET, produces="application/json")
-    public @ResponseBody Player newbet(@RequestParam("bet") double bet,
+    public @ResponseBody String newbet(Model model, @RequestParam("bet") double bet,
                                            @RequestParam("playerId") Integer playerId) {
         Player player = getPlayer(playerId);
-        if (player.getBet() == 0) {
-            player.setBet(bet);
+        if (player.getMoney() - bet < 0) {
+            return "redirect:/money";
+        } else {
+            model.addAttribute("playerId", playerId);
+            model.addAttribute("bet", bet);
+            return "redirect:/firstdeal";
         }
-        return player;
     }
 
     @RequestMapping(value = "/cashin", method = RequestMethod.GET, produces="application/json")
@@ -170,8 +168,6 @@ public class GameController {
         newCard(player);
         newHiddenCard(dealer);
         newCard(player);
-//        checkBlackJack(player);
-//        checkPlayerPoints(player);
     }
 
     private IPlayer checkResult(Player player) {
