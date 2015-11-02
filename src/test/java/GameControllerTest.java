@@ -1,4 +1,4 @@
-import com.blackjack.PlayerDao;
+
 import com.blackjack.controllers.GameController;
 import com.blackjack.objects.Card;
 import com.blackjack.objects.Dealer;
@@ -15,10 +15,6 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import static org.junit.Assert.*;
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
-
-import java.util.HashMap;
-import java.util.Map;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
