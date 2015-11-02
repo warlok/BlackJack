@@ -22,6 +22,8 @@ public class PlayerDaoDerbyImpl implements PlayerDao {
     private static final String INSERT_PLAYER = "insert into PLAYERS values (:playerId, :money)";
     private static final String UPDATE_MONEY = "update PLAYERS set MONEY= :money where ID_PLAYER = :playerId";
     private static final String LOG = "select * from ACTIONS where ID_PLAYER = :playerId";
+    private static final String LOG_OERATION = "INSERT INTO ACTIONS (ID_PLAYER,OPERATION,BET,MONEY,DATE)" +
+            "VALUES (:playerId,:operation,:bet,:money,CURRENT_DATE)";
 
     private static final class PlayerRowMapper
             implements RowMapper<Player> {
@@ -91,6 +93,16 @@ public class PlayerDaoDerbyImpl implements PlayerDao {
         paramMap.put("playerId",player.getPlayerId());
         paramMap.put("money",player.getMoney());
         jdbcTemplate.update(INSERT_PLAYER,paramMap);
+    }
+
+    @Override
+    public void addLogOperation(Player player, String operation) {
+        Map<String, Object> paramMap = new HashMap<>();
+        paramMap.put("playerId",player.getPlayerId());
+        paramMap.put("bet",player.getBet());
+        paramMap.put("money",player.getMoney());
+        paramMap.put("operation",operation);
+        jdbcTemplate.update(LOG_OERATION,paramMap);
     }
 
     @Override

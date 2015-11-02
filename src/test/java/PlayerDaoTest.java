@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import javax.xml.bind.SchemaOutputResolver;
 import java.util.Map;
 
 
@@ -58,9 +59,25 @@ public class PlayerDaoTest {
     @Test
     public void testGetOperations() {
         Player player = playerDao.getPlayer(1);
-        String str = "1 1 deal 50.0 0.0 2015-10-29\n" +
-                "2 1 HIT 0.0 0.0 2015-10-29\n" +
-                "3 1 STAND 0.0 50.0 2015-10-29\n";
+        System.out.println(playerDao.getOperations(player));
+        String str = "1 1 deal 50.0 1000.0 2015-10-29\n" +
+                "2 1 HIT 50.0 1000.0 2015-10-29\n" +
+                "3 1 STAND 50.0 1000.0 2015-10-29\n" +
+                "4 1 WIN 0.0 1040.0 2015-11-02\n";
+        assertEquals(str, playerDao.getOperations(player));
+    }
+
+    @Test
+    public void testAddOperation() {
+        Player player = playerDao.getPlayer(1);
+        player.setMoney(1040);
+        player.setBet(0);
+        playerDao.addLogOperation(player,"WIN");
+        System.out.println(playerDao.getOperations(player));
+        String str = "1 1 deal 50.0 1000.0 2015-10-29\n" +
+                "2 1 HIT 50.0 1000.0 2015-10-29\n" +
+                "3 1 STAND 50.0 1000.0 2015-10-29\n" +
+                "4 1 WIN 0.0 1040.0 2015-11-02\n";
         assertEquals(str, playerDao.getOperations(player));
     }
 

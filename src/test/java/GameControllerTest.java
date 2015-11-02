@@ -78,6 +78,7 @@ public class GameControllerTest {
         Card card2 = new Card();
         card2.setPoints(10);
         card2.setValue("10");
+        double money = player.getMoney();
         player.takeCard(card1);
         player.takeCard(card2);
         player.setBet(40);
@@ -93,6 +94,7 @@ public class GameControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(content().string(gson.toJson(result)));
+        assertTrue((money + 40.0*1.5) == player.getMoney());
     }
 
     @Test

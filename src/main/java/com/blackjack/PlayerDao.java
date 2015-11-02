@@ -12,5 +12,6 @@ public interface PlayerDao {
     public Player getPlayer(int playerId);
     public void addPlayer(Player player);
     public String getOperations(Player player);
+    public void addLogOperation(Player player, String operation);
 
 }

@@ -54,6 +54,7 @@ public class GameController {
             newSet(player);
             player.setBet(bet);
             firstHand(player);
+            playerDao.addLogOperation(player,"DEAL");
         }
         return getResult(player);
     }
@@ -80,6 +81,7 @@ public class GameController {
         Player player = getPlayer(playerId);
         newCard(player);
         counter ++;
+        playerDao.addLogOperation(player,"HIT");
         checkPlayerPoints(player);
         return getResult(player);
     }
@@ -88,12 +90,14 @@ public class GameController {
     public @ResponseBody Result stand(@RequestParam("playerId") Integer playerId) {
         Player player = getPlayer(playerId);
         player.setStand(true);
+        playerDao.addLogOperation(player,"STAND");
         return getResult(player);
     }
 
     @RequestMapping(value = "/rebet", method = RequestMethod.GET, produces="application/json")
     public @ResponseBody String rebet(Model model, @RequestParam("playerId") Integer playerId) {
         Player player = getPlayer(playerId);
+        playerDao.addLogOperation(player,"REBET");
         if (player.getMoney() - player.getLastBet() < 0) {
             return "redirect:/money";
         } else {
@@ -107,6 +111,7 @@ public class GameController {
     public @ResponseBody String newbet(Model model, @RequestParam("bet") double bet,
                                            @RequestParam("playerId") Integer playerId) {
         Player player = getPlayer(playerId);
+        playerDao.addLogOperation(player,"NEWBET");
         if (player.getMoney() - bet < 0) {
             return "redirect:/money";
         } else {
@@ -122,6 +127,7 @@ public class GameController {
         Player player = getPlayer(playerId);
         player.cashIn(amount);
         playerDao.updateBalance(player);
+        playerDao.addLogOperation(player,"CASHIN");
         return player;
     }
 
@@ -135,7 +141,7 @@ public class GameController {
         result.setPlayer(player);
         if (!result.isGameFinished()) {
             if (counter == 0 && checkBlackJack(player)) {
-                IPlayer winner = checkResult(player);
+                IPlayer winner = checkResultBlackJack(player);
                 result.setWinner(winner);
                 result.setIsBlackJack(true);
                 result.setGameFinished(true);
@@ -170,22 +176,36 @@ public class GameController {
         newCard(player);
     }
 
+    private IPlayer checkResultBlackJack(Player player) {
+        IPlayer result = null;
+        if (player.getScore() > dealer.getScore()) {
+            result = player;
+        } else if (player.getScore() < dealer.getScore()) {
+            result = dealer;
+        }
+        return result;
+    }
+
     private IPlayer checkResult(Player player) {
         IPlayer result = null;
         if (player.getScore() > 21) {
             player.updateMoney(-player.getBet());
             playerDao.updateBalance(player);
+            playerDao.addLogOperation(player,"LOOSE");
             result = dealer;
         } else if (dealer.getScore() > 21) {
             player.updateMoney(player.getBet());
             playerDao.updateBalance(player);
+            playerDao.addLogOperation(player,"WIN");
             result = player;
         } else if (player.getScore() > dealer.getScore()) {
             player.updateMoney(player.getBet());
             playerDao.updateBalance(player);
+            playerDao.addLogOperation(player,"WIN");
             result = player;
         } else if (player.getScore() < dealer.getScore()) {
             player.updateMoney(-player.getBet());
+            playerDao.addLogOperation(player,"LOOSE");
             playerDao.updateBalance(player);
             result = dealer;
         } else if (player.getScore() == dealer.getScore()) {
@@ -214,10 +234,12 @@ public class GameController {
         if (dealer.getScore() == 21 && player.getScore() != 21) {
             player.updateMoney(-player.getBet());
             playerDao.updateBalance(player);
+            playerDao.addLogOperation(player,"LOOSE");
             return true;
         } else if (player.getScore() == 21 && dealer.getScore() != 21) {
             player.updateMoney(1.5 * player.getBet());
             playerDao.updateBalance(player);
+            playerDao.addLogOperation(player,"BlackJack");
             return true;
         }
         return false;
